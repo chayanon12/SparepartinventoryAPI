@@ -1,0 +1,226 @@
+[18-09-2024 13:25:13] ERROR : syntax error at or near "ASCnow"
+  QUERY :  select distinct cc_ctr,cc_desc from "CUSR".cu_mfgpro_cc_mstr where cc_active = '1' order by cc_ctr ASCnow 
+ -------------------------------------------------------------- 
+[18-09-2024 13:25:13] ERROR : syntax error at or near "ASCnow"
+  QUERY :  select distinct cc_ctr,cc_desc from "CUSR".cu_mfgpro_cc_mstr where cc_active = '1' order by cc_ctr ASCnow 
+ -------------------------------------------------------------- 
+[18-09-2024 13:25:21] ERROR : syntax error at or near "ASCnow"
+  QUERY :  select distinct cc_ctr,cc_desc from "CUSR".cu_mfgpro_cc_mstr where cc_active = '1' order by cc_ctr ASCnow 
+ -------------------------------------------------------------- 
+[18-09-2024 13:25:21] ERROR : syntax error at or near "ASCnow"
+  QUERY :  select distinct cc_ctr,cc_desc from "CUSR".cu_mfgpro_cc_mstr where cc_active = '1' order by cc_ctr ASCnow 
+ -------------------------------------------------------------- 
+[18-09-2024 15:37:41] ERROR : column "pc23132132" does not exist
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = pc23132132
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:37:59] ERROR : column "pc23132132" does not exist
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = pc23132132
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:38:15] ERROR : column "pc23132132" does not exist
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = pc23132132
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:39:37] ERROR : column "pc23132132" does not exist
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = pc23132132
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:40:48] ERROR : column "pc23132132" does not exist
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = pc23132132
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:41:50] ERROR : syntax error at or near "["
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = [object Object]
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:41:52] ERROR : syntax error at or near "["
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = [object Object]
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:42:00] ERROR : syntax error at or near "["
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = [object Object]
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:42:09] ERROR : column "pc23132132" does not exist
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = pc23132132
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:43:02] ERROR : column "pc23132132" does not exist
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = pc23132132
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:43:11] ERROR : column "pc23132132" does not exist
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = pc23132132
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:43:39] ERROR : syntax error at or near "pc23132132"
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = ''pc23132132''
+   
+ -------------------------------------------------------------- 
+[18-09-2024 15:43:41] ERROR : syntax error at or near "pc23132132"
+  QUERY : select 
+              sps.type_name ,spa.movement_type ,
+              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+              spa.admin_id,
+              spa.user_id as user_dept,
+              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+              spa.product_status 
+              from 
+              "SE".spi_product_action spa ,"SE".spi_product_store sps
+              where
+              spa.item_id = sps.type_id 
+              and
+              spa.serial_number = ''pc23132132''
+   
+ -------------------------------------------------------------- 
+[18-09-2024 16:33:34] ERROR : Already Out
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"OUT","strSerialNo":"MOU0000000006","strAdminId":"POND","strID":"9130"}]','')  
+ -------------------------------------------------------------- 
+[18-09-2024 16:35:25] ERROR : Already Out
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"OUT","strSerialNo":"MOU0000000006","strAdminId":"POND","strID":"9130"}]','')  
+ -------------------------------------------------------------- 

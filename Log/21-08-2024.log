@@ -1,0 +1,6 @@
+[21-08-2024 08:55:55] ERROR : Already Out
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"OUT","strSerialNo":"MOU0000000006","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[21-08-2024 16:37:58] ERROR : duplicate key value violates unique constraint "spi_product_action_serial_number_key"
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"IN","strSerialNo":"MOP0000000001","strAdminId":"POND","strID":""}]','')  
+ -------------------------------------------------------------- 

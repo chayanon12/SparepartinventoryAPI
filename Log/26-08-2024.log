@@ -1,0 +1,122 @@
+[26-08-2024 08:56:14] ERROR : duplicate key value violates unique constraint "spi_product_action_serial_number_key"
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"IN","strSerialNo":"1231233123","strAdminId":"POND","strID":""}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 09:02:38] ERROR : duplicate key value violates unique constraint "spi_product_action_serial_number_key"
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"IN","strSerialNo":"","strAdminId":"POND","strID":""}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 09:05:01] ERROR : Already Out
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"OUT","strSerialNo":"","strAdminId":"POND","strID":""}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 09:19:31] ERROR : Already Out
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"OUT","strSerialNo":"1231233123","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 09:19:53] ERROR : Already Out
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"OUT","strSerialNo":"1231233123","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 09:24:24] ERROR : duplicate key value violates unique constraint "spi_product_action_serial_number_key"
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"IN","strSerialNo":"MOU0000000001","strAdminId":"POND","strID":""}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 09:51:03] ERROR : function substring(character varying) does not exist
+  QUERY :  SELECT * FROM "SE".spi_getdata('{"strType":"SERIAL","strPlantCode":"5","strItem":"MOU","strItemId":"2"}');  
+ -------------------------------------------------------------- 
+[26-08-2024 09:59:28] ERROR : function substring(character varying) does not exist
+  QUERY :  SELECT * FROM "SE".spi_getdata('{"strType":"SERIAL","strPlantCode":"5","strItem":"OCN","strItemId":"14"}');  
+ -------------------------------------------------------------- 
+[26-08-2024 09:59:57] ERROR : function substring(character varying) does not exist
+  QUERY :  SELECT * FROM "SE".spi_getdata('{"strType":"SERIAL","strPlantCode":"5","strItem":"SSN","strItemId":"6"}');  
+ -------------------------------------------------------------- 
+[26-08-2024 10:25:23] ERROR : operator does not exist: character varying = integer
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":4,"strMovementType":"OUT","strSerialNo":"test1","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 10:26:22] ERROR : operator does not exist: character varying = integer
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":3,"strMovementType":"OUT","strSerialNo":"test1","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 10:26:57] ERROR : Type Item Wrong
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":3,"strMovementType":"OUT","strSerialNo":"test1","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 10:27:52] ERROR : Item_wrong
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":3,"strMovementType":"OUT","strSerialNo":"test1","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 10:28:49] ERROR : Item_wrong
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":3,"strMovementType":"OUT","strSerialNo":"test1","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 10:29:11] ERROR : Item_wrong
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":3,"strMovementType":"OUT","strSerialNo":"test1","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 10:31:02] ERROR : Item_wrong
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":1,"strMovementType":"OUT","strSerialNo":"test1","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 10:31:05] ERROR : Item_wrong
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":3,"strMovementType":"OUT","strSerialNo":"test1","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 10:32:08] ERROR : Item_wrong
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"OUT","strSerialNo":"test3","strAdminId":"POND","strID":"POND2"}]','')  
+ -------------------------------------------------------------- 
+[26-08-2024 14:05:08] ERROR : unterminated quoted string at or near "'1;
+  "
+  QUERY :  select 
+              encode(sps.type_icon, 'base64') AS type_icon,
+              sps.type_name ,
+              spi.quantity 
+              from "SE".spi_product_item spi ,"SE".spi_product_store sps 
+              where spi.type_id =sps.type_id and sps.type_abbr <> '' and sps.type_abbr is not null and type ='1;
+   
+ -------------------------------------------------------------- 
+[26-08-2024 14:05:08] ERROR : unterminated quoted string at or near "'1;
+  "
+  QUERY :  select 
+              encode(sps.type_icon, 'base64') AS type_icon,
+              sps.type_name ,
+              spi.quantity 
+              from "SE".spi_product_item spi ,"SE".spi_product_store sps 
+              where spi.type_id =sps.type_id and sps.type_abbr <> '' and sps.type_abbr is not null and type ='1;
+   
+ -------------------------------------------------------------- 
+[26-08-2024 14:05:30] ERROR : unterminated quoted string at or near "'1;
+  "
+  QUERY :  select 
+              encode(sps.type_icon, 'base64') AS type_icon,
+              sps.type_name ,
+              spi.quantity 
+              from "SE".spi_product_item spi ,"SE".spi_product_store sps 
+              where spi.type_id =sps.type_id and sps.type_abbr <> '' and sps.type_abbr is not null and type ='1;
+   
+ -------------------------------------------------------------- 
+[26-08-2024 14:05:33] ERROR : unterminated quoted string at or near "'1;
+  "
+  QUERY :  select 
+              encode(sps.type_icon, 'base64') AS type_icon,
+              sps.type_name ,
+              spi.quantity 
+              from "SE".spi_product_item spi ,"SE".spi_product_store sps 
+              where spi.type_id =sps.type_id and sps.type_abbr <> '' and sps.type_abbr is not null and type ='1;
+   
+ -------------------------------------------------------------- 
+[26-08-2024 14:05:33] ERROR : unterminated quoted string at or near "'1;
+  "
+  QUERY :  select 
+              encode(sps.type_icon, 'base64') AS type_icon,
+              sps.type_name ,
+              spi.quantity 
+              from "SE".spi_product_item spi ,"SE".spi_product_store sps 
+              where spi.type_id =sps.type_id and sps.type_abbr <> '' and sps.type_abbr is not null and type ='1;
+   
+ -------------------------------------------------------------- 
+[26-08-2024 14:06:11] ERROR : column spi.type does not exist
+  QUERY :  select 
+              encode(sps.type_icon, 'base64') AS type_icon,
+              sps.type_name ,
+              spi.quantity 
+              from "SE".spi_product_item spi ,"SE".spi_product_store sps 
+              where spi.type_id =sps.type_id and sps.type_abbr <> '' and sps.type_abbr is not null and spi.type ='1';
+   
+ -------------------------------------------------------------- 
+[26-08-2024 14:06:12] ERROR : column spi.type does not exist
+  QUERY :  select 
+              encode(sps.type_icon, 'base64') AS type_icon,
+              sps.type_name ,
+              spi.quantity 
+              from "SE".spi_product_item spi ,"SE".spi_product_store sps 
+              where spi.type_id =sps.type_id and sps.type_abbr <> '' and sps.type_abbr is not null and spi.type ='1';
+   
+ -------------------------------------------------------------- 
