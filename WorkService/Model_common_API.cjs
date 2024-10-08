@@ -316,7 +316,8 @@ module.exports.getCheckSerial = async function (req, res) {
       spa.admin_id,
       spa.user_id as user_dept,
       to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
-      spa.product_status 
+      spa.product_status ,
+      spa.admin_scan_out As admin_out_id
       from 
       "SE".spi_product_action spa ,"SE".spi_product_store sps
       where
