@@ -27,7 +27,6 @@ app.use((req, res, next) => {
 
 app.use("/Sparepart/api", require("./routes/Common.cjs"));
 
-
 app.get("/", async (req, res) => {
   let connection;
 
