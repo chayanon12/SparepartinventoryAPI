@@ -15,5 +15,8 @@ router.get("/common/getOutSum",Common.getOutSum);
 router.get("/common/GetDttableAll",Common.GetDttableAll);
 router.get("/common/getfac",Common.getFac);
 router.get("/common/getCheckSerial",Common.getCheckSerial);
+router.get("/common/getCheckIdCodeAdmin",Common.getCheckIdCodeAdmin);
+router.get("/common/getCheckIdCodeUser",Common.getCheckIdCodeUser);
+router.get("/common/getIPaddress",Common.getIPaddress);
 
 module.exports = router;

@@ -18,10 +18,12 @@ module.exports.GetData = async function (req, res) {
       strTypename: strTypename,
     };
     const json_convertdata = JSON.stringify(json_data);
+    console.log(json_convertdata)
     query += ` SELECT * FROM "SE".spi_getdata('${json_convertdata}'); `;
     const result = await client.query(query);
     if (strType == "SERIAL") {
       let data = [];
+      console.log("in");
       for (let i = 0; i < result.rows.length; i++) {
         data.push({ serial: result.rows[i].serialnumber });
       }
@@ -60,7 +62,7 @@ module.exports.GetDttable = async function (req, res) {
               sps.type_name ,
               spi.quantity ,
               spi.user_service,
-              (spi.quantity  - spi.user_service  ) as onHands     
+              spi.quantity as onHands     
               from "SE".spi_product_item spi ,"SE".spi_product_store sps 
               where spi.type_id =sps.type_id and sps.remark ='ACTIVE' 
   `;
@@ -145,10 +147,17 @@ module.exports.genSerial = async function (req, res) {
   try {
     const strType = req.query.strType;
     const strPlantCode = req.query.strPlantCode;
-    const strItem = req.query.strItem;
+    let strItem = req.query.strItem;
     const strItemID = req.query.strItemId;
     const strQty = parseInt(req.query.quantity);
-
+    if (strItem == ''){
+      console.log('in')
+      const client = await ConnectPG_DB();
+      let querySearch = 	`select type_id ,type_abbr from "SE".spi_product_store where spi_product_store.remark ='ACTIVE' and type_id= '${strItemID}' order by type_id `
+      const resultX = await client.query(querySearch);
+      strItem = resultX.rows[0].type_abbr;
+      DisconnectPG_DB(client);
+    }
     if (isNaN(strQty) || strQty <= 0) {
       return res.status(400).json({ message: "Invalid quantity specified." });
     }
@@ -161,7 +170,7 @@ module.exports.genSerial = async function (req, res) {
       strItemId: strItemID,
     };
     const json_convertdata = JSON.stringify(json_data);
-
+    
     query += ` SELECT * FROM "SE".spi_getdata('${json_convertdata}'); `;
     const result = await client.query(query);
     let existingSerialNumbers = result.rows[0].serialnumber;
@@ -197,7 +206,11 @@ module.exports.genSerial = async function (req, res) {
       return serialNumbers;
     };
 
-    const newSerialNumbers = generateSerialNumbers(existingSerialNumbers,strItem, strQty );
+    const newSerialNumbers = generateSerialNumbers(
+      existingSerialNumbers,
+      strItem,
+      strQty
+    );
     let x = [];
     for (let i = 0; i < newSerialNumbers.length; i++) {
       x.push({ serial: newSerialNumbers[i] });
@@ -255,7 +268,7 @@ module.exports.getOutSum = async function (req, res) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
   }
-}
+};
 
 module.exports.getFac = async function (req, res) {
   var query = "";
@@ -273,34 +286,102 @@ module.exports.getFac = async function (req, res) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
   }
-}
+};
 
 module.exports.getCheckSerial = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    const {serial_number} = req.query;
+    const { serial_number } = req.query;
     console.log(serial_number);
-    query += `select 
-              sps.type_name ,spa.movement_type ,
-              to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
-              spa.admin_id,
-              spa.user_id as user_dept,
-              to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
-              spa.product_status 
-              from 
-              "SE".spi_product_action spa ,"SE".spi_product_store sps
-              where
-              spa.item_id = sps.type_id 
-              and
-              spa.serial_number = '${serial_number}'
-  `;
+    if (serial_number == "") {
+      query += `select 
+      sps.type_name ,spa.serial_number,spa.movement_type ,
+      to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+      spa.admin_id,
+      spa.user_id as user_dept,
+      to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+      spa.product_status 
+      from 
+      "SE".spi_product_action spa ,"SE".spi_product_store sps
+      where
+      spa.item_id = sps.type_id 
+`;
+    } else {
+      query += `select 
+      sps.type_name ,spa.serial_number,spa.movement_type ,
+      to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
+      spa.admin_id,
+      spa.user_id as user_dept,
+      to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
+      spa.product_status 
+      from 
+      "SE".spi_product_action spa ,"SE".spi_product_store sps
+      where
+      spa.item_id = sps.type_id 
+      and
+      spa.serial_number = '${serial_number}'
+`;
+    }
+
     const result = await client.query(query);
-    res.status(200).json(result.rows);    
+    res.status(200).json(result.rows);
     DisconnectPG_DB(client);
   } catch (error) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
   }
-}
+};
 
+module.exports.getCheckIdCodeAdmin = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { empcode } = req.query;
+
+    query += ` SELECT t.empcode ,t.ename ,t.esurname ,t.work_location
+          FROM "CUSR".cu_user_humantrix  t
+          where t.cost_center like '%180'
+          and t.status  = 'Active'
+          and t.empcode = '${empcode}'
+  `;
+  console.log(query);
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.getCheckIdCodeUser = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { empcode } = req.query;
+
+    query += ` select t.empcode ,t.ename ,t.esurname ,t.work_location ,t.cost_center ,t.department ,t.process ,t.division ,t.status
+               FROM "CUSR".cu_user_humantrix  t
+               where t.status  = 'Active'
+               and t.empcode = '${empcode}'
+  `;
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports.getIPaddress = async (req, res) => {
+  try {
+    const clientIp = req.connection.remoteAddress;
+    const ip = clientIp.includes(":") ? clientIp.split(":").pop() : clientIp;
+ 
+    res.status(200).send({ ip: ip });
+  } catch (error) {
+    writeLogError(err.message, "Cannot get IP address");
+    res.status(500).json({ message: error.message });
+  }
+};

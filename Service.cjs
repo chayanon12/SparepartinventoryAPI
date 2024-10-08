@@ -27,46 +27,7 @@ app.use((req, res, next) => {
 
 app.use("/Sparepart/api", require("./routes/Common.cjs"));
 
-app.get("/", async (req, res) => {
-  let connection;
 
-  try {
-    connection = await oracledb.getConnection({
-      user: 'qad',
-      password: 'qad',
-      connectString: 'TCIX01'
-    });
-    const result = await connection.execute(
-      `BEGIN
-         :cursor := PR.POZ_REPORT.RPT_POZ(:po_no);
-       END;`,
-      {
-        po_no: '2E705260',  
-        cursor: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
-      }
-    );
-    const cursor = result.outBinds.cursor;
-    let row;
-    const rows = [];
-    while ((row = await cursor.getRow())) {
-      rows.push(row);
-    }
-    await cursor.close();
-
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error occurred');
-  } finally {
-    if (connection) {
-      try {
-        await connection.close();
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  }
-});
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });

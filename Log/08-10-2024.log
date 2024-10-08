@@ -1,0 +1,105 @@
+[08-10-2024 11:00:21] ERROR : null value in column "plant_code" of relation "spi_product_action" violates not-null constraint
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strItemId":2,"strMovementType":"IN","strSerialNo":"MOU0000000001","strAdminId":"POND","strID":""}]','')  
+ -------------------------------------------------------------- 
+[08-10-2024 12:21:49] ERROR : syntax error at or near "7046730"
+  QUERY :  SELECT t.empcode ,t.ename ,t.esurname ,t.work_location
+          FROM "CUSR".cu_user_humantrix  t
+          where t.cost_center like '%180'
+          and t.status  = 'Active'
+          and t.empcode = ''7046730''
+   
+ -------------------------------------------------------------- 
+[08-10-2024 13:41:14] ERROR : syntax error at or near "SSELECT"
+  QUERY :  SSELECT t.empcode ,t.ename ,t.esurname ,t.work_location ,t.cost_center ,t.department ,t.process ,t.division ,t.status
+               FROM "CUSR".cu_user_humantrix  t
+               where t.status  = 'Active'
+               and t.empcode = 'undefined'
+   
+ -------------------------------------------------------------- 
+[08-10-2024 13:44:49] ERROR : syntax error at or near "SSELECT"
+  QUERY :  SSELECT t.empcode ,t.ename ,t.esurname ,t.work_location ,t.cost_center ,t.department ,t.process ,t.division ,t.status
+               FROM "CUSR".cu_user_humantrix  t
+               where t.status  = 'Active'
+               and t.empcode = '7046730'
+   
+ -------------------------------------------------------------- 
+[08-10-2024 13:44:55] ERROR : syntax error at or near "SSELECT"
+  QUERY :  SSELECT t.empcode ,t.ename ,t.esurname ,t.work_location ,t.cost_center ,t.department ,t.process ,t.division ,t.status
+               FROM "CUSR".cu_user_humantrix  t
+               where t.status  = 'Active'
+               and t.empcode = '7046730'
+   
+ -------------------------------------------------------------- 
+[08-10-2024 13:45:11] ERROR : syntax error at or near "SSELECT"
+  QUERY :  SSELECT t.empcode ,t.ename ,t.esurname ,t.work_location ,t.cost_center ,t.department ,t.process ,t.division ,t.status
+               FROM "CUSR".cu_user_humantrix  t
+               where t.status  = 'Active'
+               and t.empcode = '7046730'
+   
+ -------------------------------------------------------------- 
+[08-10-2024 13:46:24] ERROR : syntax error at or near "SSELECT"
+  QUERY :  SSELECT t.empcode ,t.ename ,t.esurname ,t.work_location ,t.cost_center ,t.department ,t.process ,t.division ,t.status
+               FROM "CUSR".cu_user_humantrix  t
+               where t.status  = 'Active'
+               and t.empcode = '7046730'
+   
+ -------------------------------------------------------------- 
+[08-10-2024 13:46:36] ERROR : syntax error at or near "SSELECT"
+  QUERY :  SSELECT t.empcode ,t.ename ,t.esurname ,t.work_location ,t.cost_center ,t.department ,t.process ,t.division ,t.status
+               FROM "CUSR".cu_user_humantrix  t
+               where t.status  = 'Active'
+               and t.empcode = '7046730'
+   
+ -------------------------------------------------------------- 
+[08-10-2024 13:46:53] ERROR : syntax error at or near "SSELECT"
+  QUERY :  SSELECT t.empcode ,t.ename ,t.esurname ,t.work_location ,t.cost_center ,t.department ,t.process ,t.division ,t.status
+               FROM "CUSR".cu_user_humantrix  t
+               where t.status  = 'Active'
+               and t.empcode = '7046730'
+   
+ -------------------------------------------------------------- 
+[08-10-2024 13:51:55] ERROR : duplicate key value violates unique constraint "spi_product_action_serial_number_key"
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":2,"strMovementType":"IN","strSerialNo":"MOU0000000002","strAdminId":"","strID":""}]','')  
+ -------------------------------------------------------------- 
+[08-10-2024 16:34:17] ERROR : Cannot access 'client' before initialization
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:34:20] ERROR : Cannot access 'client' before initialization
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:34:38] ERROR : Cannot access 'client' before initialization
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:35:15] ERROR : relation "spi_product_store" does not exist
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:35:21] ERROR : relation "spi_product_store" does not exist
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:35:30] ERROR : relation "spi_product_store" does not exist
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:35:42] ERROR : Assignment to constant variable.
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:35:47] ERROR : Assignment to constant variable.
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:36:36] ERROR : Assignment to constant variable.
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:36:38] ERROR : Assignment to constant variable.
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:36:50] ERROR : Assignment to constant variable.
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:36:59] ERROR : Assignment to constant variable.
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 16:37:11] ERROR : Assignment to constant variable.
+  QUERY :  
+ -------------------------------------------------------------- 
+[08-10-2024 17:46:41] ERROR : duplicate key value violates unique constraint "spi_product_action_serial_number_key"
+  QUERY :  CALL "SE".SPI_INSERT_DATA('[{"strPlantCode":"5","strItemId":28,"strMovementType":"IN","strSerialNo":"TAB0000000001","strAdminId":"10.17.74.228","strID":""}]','')  
+ -------------------------------------------------------------- 
