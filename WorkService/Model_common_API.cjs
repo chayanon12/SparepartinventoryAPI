@@ -18,12 +18,10 @@ module.exports.GetData = async function (req, res) {
       strTypename: strTypename,
     };
     const json_convertdata = JSON.stringify(json_data);
-    console.log(json_convertdata)
     query += ` SELECT * FROM "SE".spi_getdata('${json_convertdata}'); `;
     const result = await client.query(query);
     if (strType == "SERIAL") {
       let data = [];
-      console.log("in");
       for (let i = 0; i < result.rows.length; i++) {
         data.push({ serial: result.rows[i].serialnumber });
       }
@@ -115,7 +113,6 @@ module.exports.insertData = async function (req, res) {
     const client = await ConnectPG_DB();
     let { dataList } = req.body;
     const json_convertdata = JSON.stringify(dataList);
-    console.log(json_convertdata);
     query += ` CALL "SE".SPI_INSERT_DATA('[${json_convertdata}]','') `;
 
     const result = await client.query(query);
@@ -151,10 +148,9 @@ module.exports.genSerial = async function (req, res) {
     let strItem = req.query.strItem;
     const strItemID = req.query.strItemId;
     const strQty = parseInt(req.query.quantity);
-    if (strItem == ''){
-      console.log('in')
+    if (strItem == "") {
       const client = await ConnectPG_DB();
-      let querySearch = 	`select type_id ,type_abbr from "SE".spi_product_store where spi_product_store.remark ='ACTIVE' and type_id= '${strItemID}' order by type_id `
+      let querySearch = `select type_id ,type_abbr from "SE".spi_product_store where spi_product_store.remark ='ACTIVE' and type_id= '${strItemID}' order by type_id `;
       const resultX = await client.query(querySearch);
       strItem = resultX.rows[0].type_abbr;
       DisconnectPG_DB(client);
@@ -171,7 +167,7 @@ module.exports.genSerial = async function (req, res) {
       strItemId: strItemID,
     };
     const json_convertdata = JSON.stringify(json_data);
-    
+
     query += ` SELECT * FROM "SE".spi_getdata('${json_convertdata}'); `;
     const result = await client.query(query);
     let existingSerialNumbers = result.rows[0].serialnumber;
@@ -293,25 +289,37 @@ module.exports.getCheckSerial = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    const { serial_number } = req.query;
-    console.log(serial_number);
-    if (serial_number == "") {
+    const { serial_number, items } = req.query;
+    let itemRecive = items === undefined ? 0 : items.value;
+    if (itemRecive == 0) itemRecive = "";
+    if (serial_number == "" && itemRecive == "") {
       query += `select 
-      sps.type_name ,spa.serial_number,spa.movement_type ,
+      sps.type_name ,spa.serial_number,
+        spa.item_name ,
+      spa.mac_address ,
+      spa.fix_assets_code ,
+      spa.movement_type ,      
       to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
       spa.admin_id,
       spa.user_id as user_dept,
       to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
       spa.product_status ,
       spa.admin_scan_out As admin_out_id
+    
       from 
       "SE".spi_product_action spa ,"SE".spi_product_store sps
       where
       spa.item_id = sps.type_id 
+      
 `;
     } else {
       query += `select 
-      sps.type_name ,spa.serial_number,spa.movement_type ,
+      sps.type_name ,
+      spa.serial_number,
+      spa.item_name ,
+      spa.mac_address ,
+      spa.fix_assets_code ,
+      spa.movement_type ,      
       to_char(spa.create_date,'DD/MM/YYYY HH:MI:SS') as Scan_in_Date,
       spa.admin_id,
       spa.user_id as user_dept,
@@ -322,9 +330,13 @@ module.exports.getCheckSerial = async function (req, res) {
       "SE".spi_product_action spa ,"SE".spi_product_store sps
       where
       spa.item_id = sps.type_id 
-      and
-      spa.serial_number = '${serial_number}'
-`;
+       `;
+      if (serial_number != "") {
+        query += ` and spa.serial_number = '${serial_number}'`;
+      }
+      if (itemRecive != "") {
+        query += ` and spa.item_id = '${itemRecive}'`;
+      }
     }
 
     const result = await client.query(query);
@@ -348,7 +360,6 @@ module.exports.getCheckIdCodeAdmin = async function (req, res) {
           and t.status  = 'Active'
           and t.empcode = '${empcode}'
   `;
-  console.log(query);
     const result = await client.query(query);
     res.status(200).json(result.rows);
     DisconnectPG_DB(client);
@@ -381,10 +392,212 @@ module.exports.getIPaddress = async (req, res) => {
   try {
     const clientIp = req.connection.remoteAddress;
     const ip = clientIp.includes(":") ? clientIp.split(":").pop() : clientIp;
- 
+
     res.status(200).send({ ip: ip });
   } catch (error) {
     writeLogError(err.message, "Cannot get IP address");
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.getProductItems = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { empcode } = req.query;
+
+    query += ` 
+                select 'All' as type_name ,0 as type_id
+                union all
+                select sps.type_name ,sps.type_id
+                from "SE".spi_product_store sps 
+                where sps.remark ='ACTIVE'
+                
+
+  `;
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports.getUserLogin = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { username, password } = req.body;
+    console.log(username, password);
+    query += ` select t.user_password as password ,t.user_emp_id,t.user_fname,t.user_surname  from "CUSR".cu_user_m t where t.user_login ='${username}'`;
+    const result = await client.query(query);
+    console.log(result.rows.length);
+    if (result.rows.length > 0) {
+      if (result.rows[0].password == password) {
+        res.status(200).json({ state: "Success", value: result.rows[0] });
+      } else {
+        res.status(400).json({ state: "Incorrect_Password" });
+      }
+    } else {
+      res.status(400).json({ state: "Incorrect_Password" });
+    }
+
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.getDataReport = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { movementtype, datefrom, dateto, typename, dept } = req.query;
+    query += ` SELECT 
+        sps.type_name,
+        spa.serial_number,
+        spa.item_name,
+        spa.mac_address,
+        spa.fix_assets_code,
+        spa.movement_type,
+        TO_CHAR(spa.create_date, 'DD/MM/YYYY HH24:MI:SS') AS Scan_in_Date,
+        spa.admin_id,
+        spa.user_id ,
+        spa.user_id AS user_dept,
+        TO_CHAR(spa.update_date, 'DD/MM/YYYY HH24:MI:SS') AS Scan_out_Date,
+        spa.product_status,
+        spa.admin_scan_out AS admin_out_id,
+        spa.user_dept as dept
+    FROM 
+        "SE".spi_product_action spa,"SE".spi_product_store sps 
+    where
+      spa.item_id = sps.type_id  `;
+    console.log(movementtype, "movementtype");
+    if (movementtype !== "ALL") {
+      query += ` and spa.movement_type = '${movementtype}'  `;
+    }
+    if (datefrom !== "") {
+      query += ` and TO_CHAR(spa.create_date, 'YYYY-MM-DD') >= '${datefrom}'  `;
+    }
+    if (dateto != "") {
+      query += ` and TO_CHAR(spa.create_date, 'YYYY-MM-DD') <= '${dateto}'  `;
+    }
+    if (typename != "ALL") {
+      query += ` and spa.item_id = '${typename}'  `;
+    }
+    if (dept !== "") {
+      query += ` and spa.user_dept = '${dept}'  `;
+    }
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.getModifyData = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { serialNo } = req.query;
+
+    query += ` select spa.item_name,spa.mac_address,spa.fix_assets_code from "SE".spi_product_action spa where spa.serial_number ='${serialNo}'`;
+    const result = await client.query(query);
+    res.status(200).json(result.rows[0]);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.updateModifyData = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { dataList } = req.body;
+    query = `
+              UPDATE "SE".spi_product_action 
+              SET 
+                  item_name = COALESCE(NULLIF('${dataList.item_name}', ''), item_name),
+                  mac_address = COALESCE(NULLIF('${dataList.mac_address}', ''), mac_address),
+                  fix_assets_code = COALESCE(NULLIF('${dataList.fix_assets_code}', ''), fix_assets_code)
+              WHERE serial_number = '${dataList.serialNo}'
+            `;
+    const result = await client.query(query);
+    if (result.rowCount > 0) {
+      res.status(200).json({ Status: "Success" });
+    } else {
+      res.status(400).json({ Status: "Failed to update" });
+    }
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.getType = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    query = `
+             select sps.type_name,sps.type_product from "SE".spi_product_store sps order by sps.type_id asc
+            `;
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports.InsertNewtype = async function (req, res) {
+  var query = "";
+  try {
+    const { type_name, type_product } = req.body;
+    console.log(type_name, type_product);
+    const client = await ConnectPG_DB();
+    query = `
+            INSERT INTO "SE".spi_product_store
+            (type_id, type_name,type_product,remark )
+            VALUES(nextval('"SE".spi_product_store_type_id_seq'::regclass), '${type_name}','${type_product}','ACTIVE');
+            `;
+    const result = await client.query(query);
+    const query2 = `SELECT type_id FROM "SE".spi_product_store where type_name = '${type_name}'`;
+    const result2 = await client.query(query2);
+    if (result2.rows[0].type_id != "") {
+      const type_id_v = result2.rows[0].type_id;
+      const query3 = `INSERT INTO "SE".spi_product_item
+      (plant_code, item_id, type_id, quantity, scan_in_date, status, user_service)
+      VALUES('${Fac}', nextval('"SE".spi_product_item_item_id_seq'::regclass), ${type_id_v}, 0, CURRENT_TIMESTAMP, 'ACTIVE', 0);`;
+      const result3 = await client.query(query3);
+      if (result3.rowCount > 0) {
+        res.status(200).json({ state: "Success" });
+      }
+    }
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ state: "Error", message: error.message });
+  }
+};
+
+module.exports.getCostcenter = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    query = `
+             select distinct cuh.cost_center from "CUSR".cu_user_humantrix cuh order by cuh.cost_center asc
+            `;
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
   }
 };

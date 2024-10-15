@@ -1,7 +1,7 @@
 const express = require("express");
 const oracledb = require('oracledb');
 const app = express();
-const port = 9002;
+const port = 4002;
 const Common = require("./routes/Common.cjs");
 const cors = require('cors');
 oracledb.initOracleClient({

@@ -19,7 +19,6 @@ const ConnectPG_DB= async () => {
 
 const DisconnectPG_DB = async (client) => {
     await client.end(); 
-    // console.log("Disconnected from PostgreSQL");
 }
 
 
