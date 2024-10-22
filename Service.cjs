@@ -1,17 +1,12 @@
 const express = require("express");
-const oracledb = require('oracledb');
 const app = express();
-const port = 4002;
+const port = 9002;
 const Common = require("./routes/Common.cjs");
 const cors = require('cors');
-oracledb.initOracleClient({
-  // tnsAdmin: "D:\\app\\\Chayanon.I\\product\\11.2.0\\client_2\\network\\admin",
-  tnsAdmin: process.env.TNS_ADMIN,
-});
 app.use(cors({
   origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'], // เพิ่ม headers ที่จำเป็น
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 

@@ -26,5 +26,8 @@ router.post("/common/updateModifyData",Common.updateModifyData);
 router.get("/common/getType",Common.getType);
 router.post("/common/addNewType",Common.InsertNewtype);
 router.get("/common/getCostcenter",Common.getCostcenter);
+router.post("/common/setUpdatedata",Common.setUpdatedata);
+router.get("/common/setBrokenItem",Common.setBrokenItem);
+
 
 module.exports = router;
