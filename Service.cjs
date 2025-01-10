@@ -21,6 +21,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/Sparepart/api", require("./routes/Common.cjs"));
+app.use("/newarrival/api", require("./routes/NewArrival.cjs"));
 
 
 app.listen(port, () => {
