@@ -10,6 +10,9 @@ router.get("/getDataReportNewArr",NewArr.getDataReportNewArr);
 router.get("/getTypeNewArr",NewArr.getTypeNewArr);
 router.post("/insertnewtypeNewArr",NewArr.insertnewtypeNewArr);
 router.get('/getdataRequestNumber',NewArr.getdataRequestNumber);
+router.get('/getSerialRequestNumberPostgres',NewArr.getSerialRequestNumberPostgres);
+router.post('/setReqNoStatusData',NewArr.setReqNoStatusData);
+
 
 
 module.exports = router;

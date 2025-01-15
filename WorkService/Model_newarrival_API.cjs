@@ -159,6 +159,23 @@ module.exports.getTypeNewArr = async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 };
+module.exports.setReqNoStatusData = async function (req, res) {
+  var query = "";
+  try {
+    let { dataList } = req.body;
+    const client = await ConnectPG_DB();
+    const json_convertdata = JSON.stringify(dataList);
+    query += ` CALL "SE".spi_insert_req_data('[${json_convertdata}]','') `;
+    const result = await client.query(query);
+    if (result.rows[0].p_error == "") {
+      res.status(200).json({ result: "Success" });
+      DisconnectPG_DB(client);
+    }   
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+}
 module.exports.insertnewtypeNewArr = async function (req, res) {
   var query = "";
   try {
@@ -198,6 +215,35 @@ module.exports.insertnewtypeNewArr = async function (req, res) {
     res.status(500).json({ state: "Error", message: error.message });
   }
 };
+module.exports.getSerialRequestNumberPostgres = async function (req, res) {
+  var query = "";
+  var queryOracle = "";
+  const { strRequestNumber } = req.query;
+  try {
+    const client = await ConnectPG_DB();
+    const clientOracle = await ConnectOracle_DB("SE");
+    queryOracle = `SELECT C.SES_MSTR_DESC,T.SP_REQ_AMOUNT
+              FROM SES_PROCESS T INNER JOIN SES_MASTER_CODE C ON C.SES_MSTRG_ID='3400' AND C.SES_MSTR_CODE=T.SP_REQ_ITEM_TYPE
+              WHERE T.SP_REQ_NO = '${strRequestNumber}'`;
+    query = `select t.serial_number  from "SE".spi_product_action t where t.req_no ='${strRequestNumber}' order by movement_id `;
+    const result = await client.query(query);
+    const resultOracle = await clientOracle.execute(queryOracle);
+    if (resultOracle.rows.length === 0) {
+      res.status(204).json({ message: "No data found" });
+    } else {
+      res
+        .status(200)
+        .json({ item_type: resultOracle.rows[0][0], amount: resultOracle.rows[0][1] , serial_number: result.rows[0] && result.rows ? result.rows : "" });
+    }
+    // res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  }catch (error) {
+    writeLogError(error.message, query);
+    writeLogError(error.message, queryOracle);
+    console.log(error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
 module.exports.getdataRequestNumber = async function (req, res) {
   var query = "";
   var Conn;
@@ -211,7 +257,9 @@ module.exports.getdataRequestNumber = async function (req, res) {
     if (result.rows.length === 0) {
       res.status(204).json({ message: "No data found" });
     } else {
-      res.status(200).json({ item_type: result.rows[0][0], amount: result.rows[0][1] });
+      res
+        .status(200)
+        .json({ item_type: result.rows[0][0], amount: result.rows[0][1] });
     }
     DisconnectOracleDB(Conn);
   } catch (err) {

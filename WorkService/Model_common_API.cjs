@@ -124,9 +124,11 @@ module.exports.insertData = async function (req, res) {
     let { dataList } = req.body;
     console.log(req.body);
     const json_convertdata = JSON.stringify(dataList);
+    console.log(json_convertdata);
     query += ` CALL "SE".SPI_INSERT_DATA('[${json_convertdata}]','') `;
 
     const result = await client.query(query);
+    console.log(result.rows)
     if (result.rows[0].p_error == "") {
       res.status(200).json({ result: "Success" });
       return;
@@ -570,7 +572,7 @@ module.exports.getType = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     query = `
-             select sps.type_id,sps.type_name,sps.type_product,sps.type_abbr from "SE".spi_product_store sps where  sps.remark = 'ACTIVE' and sps.item_type_flg ='OLD' order by sps.type_id asc
+             select sps.type_id,sps.type_name,sps.type_product,sps.type_abbr from "SE".spi_product_store sps where  sps.remark = 'ACTIVE' and sps.item_type_flg ='OLD' or sps.item_type_flg ='ALL' order by sps.type_id asc
             `;
     const result = await client.query(query);
     res.status(200).json(result.rows);
