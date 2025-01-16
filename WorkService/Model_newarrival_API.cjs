@@ -94,6 +94,29 @@ module.exports.GetDttableNewArr = async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 };
+module.exports.getProductItemsNewArr = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { empcode } = req.query;
+
+    query += ` 
+              select 'All' as type_name ,0 as type_id
+                union all
+                select sps.type_name ,sps.type_id
+                from "SE".spi_product_store sps 
+                where sps.remark ='ACTIVE' and sps.item_type_flg = 'NEW' order by type_id asc
+                
+
+  `;
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
 module.exports.getDataReportNewArr = async function (req, res) {
   var query = "";
   try {
@@ -111,16 +134,23 @@ module.exports.getDataReportNewArr = async function (req, res) {
         spa.admin_id,
         spa.user_id ,
         spa.user_id AS user_dept,
+        spa.user_name as username,
         TO_CHAR(spa.update_date, 'DD/MM/YYYY HH24:MI:SS') AS Scan_out_Date,
         spa.product_status,
         spa.admin_scan_out AS admin_out_id,
-        spa.user_dept as dept
+        spa.user_dept as dept,
+        spa.req_no as reqnumber,
+        spa.pc_monitor_serial as  desktopmonitor,
+        spa.pc_old_serial as olddesktopserial,
+        spa.user_contact as usercontact,
+        spa.remark as remark
     FROM 
         "SE".spi_product_action spa,"SE".spi_product_store sps 
     where
       spa.item_id = sps.type_id  
       and spa.item_type_flg ='NEW' `;
-    if (movementtype !== "ALL") {
+      console.log(query);
+    if (movementtype !== "All") {
       query += ` and spa.movement_type = '${movementtype}'  `;
     }
     if (datefrom !== "") {
@@ -129,10 +159,10 @@ module.exports.getDataReportNewArr = async function (req, res) {
     if (dateto != "") {
       query += ` and TO_CHAR(spa.create_date, 'YYYY-MM-DD') <= '${dateto}'  `;
     }
-    if (typename != "ALL") {
+    if (typename != "0" && typename != "undefined" && typename != "All") {
       query += ` and spa.item_id = '${typename}'  `;
     }
-    if (dept !== "") {
+    if (dept !== "" && dept !== "undefined") {
       query += ` and spa.user_dept = '${dept}'  `;
     }
 
@@ -170,12 +200,12 @@ module.exports.setReqNoStatusData = async function (req, res) {
     if (result.rows[0].p_error == "") {
       res.status(200).json({ result: "Success" });
       DisconnectPG_DB(client);
-    }   
+    }
   } catch (error) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
   }
-}
+};
 module.exports.insertnewtypeNewArr = async function (req, res) {
   var query = "";
   try {
@@ -233,11 +263,15 @@ module.exports.getSerialRequestNumberPostgres = async function (req, res) {
     } else {
       res
         .status(200)
-        .json({ item_type: resultOracle.rows[0][0], amount: resultOracle.rows[0][1] , serial_number: result.rows[0] && result.rows ? result.rows : "" });
+        .json({
+          item_type: resultOracle.rows[0][0],
+          amount: resultOracle.rows[0][1],
+          serial_number: result.rows[0] && result.rows ? result.rows : "",
+        });
     }
     // res.status(200).json(result.rows);
     DisconnectPG_DB(client);
-  }catch (error) {
+  } catch (error) {
     writeLogError(error.message, query);
     writeLogError(error.message, queryOracle);
     console.log(error.message);
