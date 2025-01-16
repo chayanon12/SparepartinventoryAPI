@@ -341,7 +341,10 @@ module.exports.getCheckSerial = async function (req, res) {
       spa.user_id as user_dept,
       to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
       spa.product_status ,
-      spa.admin_scan_out As admin_out_id
+      spa.admin_scan_out As admin_out_id,
+      spa.pc_monitor_serial as pc_monitor_serial,
+      spa.pc_old_serial as pc_old_serial,
+      spa.user_contact as user_contact
       from 
       "SE".spi_product_action spa ,"SE".spi_product_store sps
       where
@@ -500,7 +503,7 @@ module.exports.getDataReport = async function (req, res) {
     FROM 
         "SE".spi_product_action spa,"SE".spi_product_store sps 
     where
-      spa.item_id = sps.type_id  `;
+      spa.item_id = sps.type_id and spa.item_type_flg ='OLD' `;
     if (movementtype !== "ALL") {
       query += ` and spa.movement_type = '${movementtype}'  `;
     }
@@ -531,7 +534,7 @@ module.exports.getModifyData = async function (req, res) {
     const client = await ConnectPG_DB();
     const { serialNo } = req.query;
 
-    query += ` select spa.item_name,spa.mac_address,spa.fix_assets_code from "SE".spi_product_action spa where spa.serial_number ='${serialNo}'`;
+    query += `select spa.item_name,spa.mac_address,spa.fix_assets_code,spa.pc_monitor_serial,spa.pc_old_serial,spa.user_contact from "SE".spi_product_action spa where spa.serial_number ='${serialNo}'`;
     const result = await client.query(query);
     res.status(200).json(result.rows[0]);
     DisconnectPG_DB(client);
@@ -546,14 +549,19 @@ module.exports.updateModifyData = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { dataList } = req.body;
+    console.log(dataList);
     query = `
-              UPDATE "SE".spi_product_action 
-              SET 
-                  item_name = COALESCE(NULLIF('${dataList.item_name}', ''), item_name),
-                  mac_address = COALESCE(NULLIF('${dataList.mac_address}', ''), mac_address),
-                  fix_assets_code = COALESCE(NULLIF('${dataList.fix_assets_code}', ''), fix_assets_code)
-              WHERE serial_number = '${dataList.serialNo}'
+              UPDATE "SE".spi_product_action
+              SET
+                  item_name = CASE WHEN '${dataList.item_name}' = '' THEN '' ELSE '${dataList.item_name}' END,
+                  mac_address = CASE WHEN '${dataList.mac_address}' = '' THEN '' ELSE '${dataList.mac_address}' END,
+                  fix_assets_code = CASE WHEN '${dataList.fix_assets_code}' = '' THEN '' ELSE '${dataList.fix_assets_code}' END,
+                  pc_monitor_serial = CASE WHEN '${dataList.pc_monitor_serial}' = '' THEN '' ELSE '${dataList.pc_monitor_serial}' END,
+                  pc_old_serial = CASE WHEN '${dataList.pc_old_serial}' = '' THEN '' ELSE '${dataList.pc_old_serial}' END,
+                  user_contact = CASE WHEN '${dataList.user_contact}' = '' THEN '' ELSE '${dataList.user_contact}' END
+              WHERE serial_number = '${dataList.serialNo}';
             `;
+            console.log(query);
     const result = await client.query(query);
     if (result.rowCount > 0) {
       res.status(200).json({ Status: "Success" });
