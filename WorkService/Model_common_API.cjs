@@ -118,7 +118,6 @@ module.exports.GetDttableFixSerial = async function (req, res) {
                 and spa.serial_number = '${serial}'
                 order by spa.serial_number;
               `;
-    console.log(query);
     const result = await client.query(query);
     res.status(200).json(result.rows);
     DisconnectPG_DB(client);
@@ -149,13 +148,10 @@ module.exports.insertData = async function (req, res) {
   try { 
     const client = await ConnectPG_DB();
     let { dataList } = req.body;
-    console.log(req.body);
     const json_convertdata = JSON.stringify(dataList);
-    console.log(json_convertdata);
     query += ` CALL "SE".SPI_INSERT_DATA('[${json_convertdata}]','') `;
 
     const result = await client.query(query);
-    console.log(result.rows)
     if (result.rows[0].p_error == "") {
       res.status(200).json({ result: "Success" });
       return;
@@ -211,7 +207,6 @@ module.exports.genSerial = async function (req, res) {
     query += ` SELECT * FROM "SE".spi_getdata('${json_convertdata}'); `;
     const result = await client.query(query);
     let existingSerialNumbers = result.rows[0].serialnumber;
-    console.log(result.rows[0].serialnumber);
     const generateSerialNumbers = (existingSerialNumbers, strItem, count) => {
       let serialNumbers = [];
       let baseSerialNumber = `${strItem}0000000001`;
@@ -511,7 +506,6 @@ module.exports.getDataReport = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { movementtype, datefrom, dateto, typename, dept } = req.query;
-    console.log(req.query);
     query += ` SELECT 
         spa.item_broken_flg,
         sps.type_name,
@@ -554,7 +548,6 @@ module.exports.getDataReport = async function (req, res) {
     if (dept !== "" && dept !== "undefined") {
       query += ` and spa.user_dept = '${dept}'  `;
     }
-    console.log(query);
     const result = await client.query(query);
     res.status(200).json(result.rows);
     DisconnectPG_DB(client);

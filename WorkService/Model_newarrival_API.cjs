@@ -149,7 +149,6 @@ module.exports.getDataReportNewArr = async function (req, res) {
     where
       spa.item_id = sps.type_id  
       and spa.item_type_flg ='NEW' `;
-      console.log(query);
     if (movementtype !== "All") {
       query += ` and spa.movement_type = '${movementtype}'  `;
     }
@@ -241,7 +240,6 @@ module.exports.insertnewtypeNewArr = async function (req, res) {
     DisconnectPG_DB(client);
   } catch (error) {
     writeLogError(error.message, query);
-    console.log(error.message);
     res.status(500).json({ state: "Error", message: error.message });
   }
 };
@@ -274,7 +272,6 @@ module.exports.getSerialRequestNumberPostgres = async function (req, res) {
   } catch (error) {
     writeLogError(error.message, query);
     writeLogError(error.message, queryOracle);
-    console.log(error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -298,7 +295,6 @@ module.exports.getdataRequestNumber = async function (req, res) {
     DisconnectOracleDB(Conn);
   } catch (err) {
     writeLogError(err.message, query);
-    console.log(err.message);
     res.status(500).json({ message: err.message });
     DisconnectOracleDB(Conn);
   }
