@@ -28,6 +28,7 @@ router.post("/common/addNewType",Common.InsertNewtype);
 router.get("/common/getCostcenter",Common.getCostcenter);
 router.post("/common/setUpdatedata",Common.setUpdatedata);
 router.get("/common/setBrokenItem",Common.setBrokenItem);
+router.get("/common/GetDttableFixSerial",Common.GetDttableFixSerial);
 
 
 module.exports = router;

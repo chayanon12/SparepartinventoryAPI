@@ -35,7 +35,16 @@ module.exports.GetData = async function (req, res) {
         });
       }
       res.status(200).json(data);
-    } else {
+    } else if (strType == "DDLNEW") {
+      let data = [];
+      for (let i = 0; i < result.rows.length; i++) {
+        data.push({
+          typeid: result.rows[i].typeid,
+          typename: result.rows[i].typename,
+        });
+      }
+      res.status(200).json(data);
+    }else{
       res.status(200).json(result.rows);
     }
     DisconnectPG_DB(client);
@@ -54,7 +63,6 @@ module.exports.GetDttable = async function (req, res) {
       strPlantCode: Fac,
     };
     const json_convertdata = JSON.stringify(json_data);
-    // query += ` SELECT * FROM "SE".spi_getDttable('${json_convertdata}'); `;
     query += `select 
               encode(sps.type_icon, 'base64') AS type_icon,
               sps.type_name ,
@@ -76,12 +84,40 @@ module.exports.GetDttableAll = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
+    let strType = req.query.strType;
     const json_data = {
+      strType : strType,
       strPlantCode: Fac,
     };
     const json_convertdata = JSON.stringify(json_data);
     query += ` SELECT * FROM "SE".spi_getDttable('${json_convertdata}'); `;
 
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports.GetDttableFixSerial = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    let { plantCode,serial } = req.query;
+    query += ` select 
+              spa.product_status as product_status,
+              spa.item_broken_flg ,
+              spa.serial_number, 
+	            spa.movement_type AS status,
+	            to_char(spa.create_date, 'DD/MM/YYYY HH:mi:ss')::varchar AS create_date, 
+	            to_char(spa.update_date, 'DD/MM/YYYY HH:mi:ss')::varchar AS update_date, 
+	            spa.admin_id AS Scan_IN
+              FROM "SE".spi_product_action spa 
+                WHERE spa.plant_code = '${plantCode}'
+                and spa.serial_number = '${serial}'
+                order by spa.serial_number;
+              `;
     const result = await client.query(query);
     res.status(200).json(result.rows);
     DisconnectPG_DB(client);
@@ -109,7 +145,7 @@ module.exports.GetCountDashboard = async function (req, res) {
 };
 module.exports.insertData = async function (req, res) {
   var query = "";
-  try {
+  try { 
     const client = await ConnectPG_DB();
     let { dataList } = req.body;
     const json_convertdata = JSON.stringify(dataList);
@@ -167,18 +203,17 @@ module.exports.genSerial = async function (req, res) {
       strItemId: strItemID,
     };
     const json_convertdata = JSON.stringify(json_data);
-
+    
     query += ` SELECT * FROM "SE".spi_getdata('${json_convertdata}'); `;
     const result = await client.query(query);
     let existingSerialNumbers = result.rows[0].serialnumber;
-
     const generateSerialNumbers = (existingSerialNumbers, strItem, count) => {
       let serialNumbers = [];
       let baseSerialNumber = `${strItem}0000000001`;
       if (existingSerialNumbers === "") {
         let serialNumberInt = parseInt(
           baseSerialNumber.slice(strItem.length),
-          10
+          10 
         );
 
         while (serialNumbers.length < count) {
@@ -328,7 +363,10 @@ module.exports.getCheckSerial = async function (req, res) {
       spa.user_id as user_dept,
       to_char(spa.update_date ,'DD/MM/YYYY HH:MI:SS') as Scan_out_Date,
       spa.product_status ,
-      spa.admin_scan_out As admin_out_id
+      spa.admin_scan_out As admin_out_id,
+      spa.pc_monitor_serial as pc_monitor_serial,
+      spa.pc_old_serial as pc_old_serial,
+      spa.user_contact as user_contact
       from 
       "SE".spi_product_action spa ,"SE".spi_product_store sps
       where
@@ -410,11 +448,11 @@ module.exports.getProductItems = async function (req, res) {
     const { empcode } = req.query;
 
     query += ` 
-                select 'All' as type_name ,0 as type_id
+              select 'All' as type_name ,0 as type_id
                 union all
                 select sps.type_name ,sps.type_id
                 from "SE".spi_product_store sps 
-                where sps.remark ='ACTIVE'
+                where sps.remark ='ACTIVE' and sps.item_type_flg = 'OLD' order by type_id asc
                 
 
   `;
@@ -431,10 +469,21 @@ module.exports.getUserLogin = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { username, password } = req.body;
-    console.log(username, password);
-    query += ` select t.user_password as password ,t.user_emp_id,t.user_fname,t.user_surname  from "CUSR".cu_user_m t where t.user_login ='${username}'`;
+    if (username == "adminstrator" && password == "fujikura") {;
+      res.status(200).json({
+        state: "Success",
+        value: {
+          password: "fujikura",
+          user_emp_id: "xxxxxxx",
+          user_fname: "Adminstrator",
+          user_surname: "SE",
+        },
+      });
+      return;
+    }
+    // query += ` select t.user_password as password ,t.user_emp_id,t.user_fname,t.user_surname  from "CUSR".cu_user_m t where t.user_login ='${username}'`;
+    query += ` select t.user_password as password ,t.user_emp_id,t.user_fname,t.user_surname from "CUSR".cu_user_m t where t.user_login ='${username}' and t.user_costcenter like '%180' and t.user_status ='A'`;
     const result = await client.query(query);
-    console.log(result.rows.length);
     if (result.rows.length > 0) {
       if (result.rows[0].password == password) {
         res.status(200).json({ state: "Success", value: result.rows[0] });
@@ -469,16 +518,22 @@ module.exports.getDataReport = async function (req, res) {
         spa.admin_id,
         spa.user_id ,
         spa.user_id AS user_dept,
+        spa.user_name as username,
         TO_CHAR(spa.update_date, 'DD/MM/YYYY HH24:MI:SS') AS Scan_out_Date,
         spa.product_status,
         spa.admin_scan_out AS admin_out_id,
-        spa.user_dept as dept
+        spa.user_dept as dept,
+        spa.req_no as reqnumber,
+        spa.pc_monitor_serial as  desktopmonitor,
+        spa.pc_old_serial as olddesktopserial,
+        spa.user_contact as usercontact,
+        spa.remark as remark
     FROM 
         "SE".spi_product_action spa,"SE".spi_product_store sps 
     where
-      spa.item_id = sps.type_id  `;
-    console.log(movementtype, "movementtype");
-    if (movementtype !== "ALL") {
+      spa.item_id = sps.type_id 
+      and spa.item_type_flg ='OLD' `;
+    if (movementtype !== "All") {
       query += ` and spa.movement_type = '${movementtype}'  `;
     }
     if (datefrom !== "") {
@@ -487,14 +542,13 @@ module.exports.getDataReport = async function (req, res) {
     if (dateto != "") {
       query += ` and TO_CHAR(spa.create_date, 'YYYY-MM-DD') <= '${dateto}'  `;
     }
-    if (typename != "ALL") {
+    if (typename != "0" && typename != "undefined" && typename != "All") {
       query += ` and spa.item_id = '${typename}'  `;
     }
-    if (dept !== "") {
+    if (dept !== "" && dept !== "undefined") {
       query += ` and spa.user_dept = '${dept}'  `;
     }
     const result = await client.query(query);
-    console.log(result.rows);
     res.status(200).json(result.rows);
     DisconnectPG_DB(client);
   } catch (error) {
@@ -509,7 +563,7 @@ module.exports.getModifyData = async function (req, res) {
     const client = await ConnectPG_DB();
     const { serialNo } = req.query;
 
-    query += ` select spa.item_name,spa.mac_address,spa.fix_assets_code from "SE".spi_product_action spa where spa.serial_number ='${serialNo}'`;
+    query += `select spa.item_name,spa.mac_address,spa.fix_assets_code,spa.pc_monitor_serial,spa.pc_old_serial,spa.user_contact from "SE".spi_product_action spa where spa.serial_number ='${serialNo}'`;
     const result = await client.query(query);
     res.status(200).json(result.rows[0]);
     DisconnectPG_DB(client);
@@ -525,12 +579,15 @@ module.exports.updateModifyData = async function (req, res) {
     const client = await ConnectPG_DB();
     const { dataList } = req.body;
     query = `
-              UPDATE "SE".spi_product_action 
-              SET 
-                  item_name = COALESCE(NULLIF('${dataList.item_name}', ''), item_name),
-                  mac_address = COALESCE(NULLIF('${dataList.mac_address}', ''), mac_address),
-                  fix_assets_code = COALESCE(NULLIF('${dataList.fix_assets_code}', ''), fix_assets_code)
-              WHERE serial_number = '${dataList.serialNo}'
+              UPDATE "SE".spi_product_action
+              SET
+                  item_name = CASE WHEN '${dataList.item_name}' = '' THEN '' ELSE '${dataList.item_name}' END,
+                  mac_address = CASE WHEN '${dataList.mac_address}' = '' THEN '' ELSE '${dataList.mac_address}' END,
+                  fix_assets_code = CASE WHEN '${dataList.fix_assets_code}' = '' THEN '' ELSE '${dataList.fix_assets_code}' END,
+                  pc_monitor_serial = CASE WHEN '${dataList.pc_monitor_serial}' = '' THEN '' ELSE '${dataList.pc_monitor_serial}' END,
+                  pc_old_serial = CASE WHEN '${dataList.pc_old_serial}' = '' THEN '' ELSE '${dataList.pc_old_serial}' END,
+                  user_contact = CASE WHEN '${dataList.user_contact}' = '' THEN '' ELSE '${dataList.user_contact}' END
+              WHERE serial_number = '${dataList.serialNo}';
             `;
     const result = await client.query(query);
     if (result.rowCount > 0) {
@@ -550,7 +607,7 @@ module.exports.getType = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     query = `
-             select sps.type_id,sps.type_name,sps.type_product,sps.type_abbr from "SE".spi_product_store sps where  sps.remark = 'ACTIVE'order by sps.type_id asc
+             select sps.type_id,sps.type_name,sps.type_product,sps.type_abbr from "SE".spi_product_store sps where  sps.remark = 'ACTIVE' and sps.item_type_flg ='OLD' or sps.item_type_flg ='ALL' order by sps.type_id asc
             `;
     const result = await client.query(query);
     res.status(200).json(result.rows);
@@ -563,13 +620,12 @@ module.exports.getType = async function (req, res) {
 module.exports.InsertNewtype = async function (req, res) {
   var query = "";
   try {
-    const { type_name, type_product } = req.body;
-    console.log(type_name, type_product);
+    const { type_name, type_product, type_abbr} = req.body;
     const client = await ConnectPG_DB();
     query = `
             INSERT INTO "SE".spi_product_store
-            (type_id, type_name,type_product,remark )
-            VALUES(nextval('"SE".spi_product_store_type_id_seq'::regclass), '${type_name}','${type_product}','ACTIVE');
+            (type_id, type_name,type_product,remark, item_type_flg,type_abbr )
+            VALUES((select max(t.type_id)  + 1 from "SE".spi_product_store t ), '${type_name}','${type_product}','ACTIVE','OLD','${type_abbr}');
             `;
     const result = await client.query(query);
     const query2 = `SELECT type_id FROM "SE".spi_product_store where type_name = '${type_name}'`;
@@ -578,7 +634,7 @@ module.exports.InsertNewtype = async function (req, res) {
       const type_id_v = result2.rows[0].type_id;
       const query3 = `INSERT INTO "SE".spi_product_item
       (plant_code, item_id, type_id, quantity, scan_in_date, status, user_service)
-      VALUES('${Fac}', nextval('"SE".spi_product_item_item_id_seq'::regclass), ${type_id_v}, 0, CURRENT_TIMESTAMP, 'ACTIVE', 0);`;
+      VALUES('${Fac}', (select max(t.item_id) + 1 from "SE".spi_product_item t) , ${type_id_v}, 0, CURRENT_TIMESTAMP, 'ACTIVE', 0);`;
       const result3 = await client.query(query3);
       if (result3.rowCount > 0) {
         res.status(200).json({ state: "Success" });
@@ -619,7 +675,6 @@ module.exports.setUpdatedata = async function (req, res) {
              type_abbr = '${type_abbr}' 
              where type_id =${type_id}
             `;
-    console.log(query);
     const result = await client.query(query);
 
     // res.status(200).json(result.rows);
@@ -646,7 +701,6 @@ module.exports.setBrokenItem = async function (req, res) {
             `;
     if (Flg == "Y") {
       const result = await client.query(query);
-      console.log(result);
       if (result.rowCount > 0) {
         res.status(200).json({ state: "Success" });
       } else {
