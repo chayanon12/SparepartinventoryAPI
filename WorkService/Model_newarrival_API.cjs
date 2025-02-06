@@ -121,8 +121,9 @@ module.exports.getDataReportNewArr = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    const { movementtype, datefrom, dateto, typename, dept } = req.query;
+    const { movementtype, datefrom, dateto, typename, dept ,fac} = req.query;
     query += ` SELECT 
+        spa.plant_code,
         spa.item_broken_flg,
         sps.type_name,
         spa.serial_number,
@@ -163,6 +164,9 @@ module.exports.getDataReportNewArr = async function (req, res) {
     }
     if (dept !== "" && dept !== "undefined") {
       query += ` and spa.user_dept = '${dept}'  `;
+    }
+    if (fac !== "" && fac !== "undefined" && fac !== "All") {
+      query += ` and spa.plant_code = '${fac}'  `;
     }
 
     const result = await client.query(query);
@@ -299,3 +303,31 @@ module.exports.getdataRequestNumber = async function (req, res) {
     DisconnectOracleDB(Conn);
   }
 };
+module.exports.getDatableFixedFac = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { plantCode } = req.query;
+    query = `
+            SELECT 
+                spi.type_name,
+                spa.item_id, 
+                spa.plant_code, 
+                COUNT(*) AS total_in_stock
+            FROM "SE".spi_product_action spa
+            JOIN "SE".spi_product_new_item sps ON spa.item_id = sps.item_id
+            JOIN "SE".spi_product_store spi ON sps.type_id = spi.type_id
+            WHERE spa.movement_type = 'IN' 
+            AND spa.item_type_flg = 'NEW'
+            AND spa.plant_code = '${plantCode}'
+            GROUP BY spi.type_name, spa.item_id, spa.plant_code
+            ORDER BY spa.item_id;
+            `;
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+}

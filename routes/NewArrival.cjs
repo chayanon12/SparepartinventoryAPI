@@ -13,6 +13,7 @@ router.get('/getdataRequestNumber',NewArr.getdataRequestNumber);
 router.get('/getSerialRequestNumberPostgres',NewArr.getSerialRequestNumberPostgres);
 router.post('/setReqNoStatusData',NewArr.setReqNoStatusData);
 router.get('/getProductItemsNewArr',NewArr.getProductItemsNewArr);
+router.get('/getDatableFixedFac',NewArr.getDatableFixedFac);
 
 
 

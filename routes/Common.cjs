@@ -20,6 +20,7 @@ router.get("/common/getCheckIdCodeUser",Common.getCheckIdCodeUser);
 router.get("/common/getIPaddress",Common.getIPaddress);
 router.get("/common/getProductItems",Common.getProductItems);
 router.post("/common/getUserLogin",Common.getUserLogin);
+router.post("/common/getUserLoginWithSingleLogon",Common.getUserLoginWithSingleLogon);
 router.get("/common/getDataReport",Common.getDataReport);
 router.get("/common/getModifyData",Common.getModifyData);
 router.post("/common/updateModifyData",Common.updateModifyData);
@@ -29,6 +30,8 @@ router.get("/common/getCostcenter",Common.getCostcenter);
 router.post("/common/setUpdatedata",Common.setUpdatedata);
 router.get("/common/setBrokenItem",Common.setBrokenItem);
 router.get("/common/GetDttableFixSerial",Common.GetDttableFixSerial);
+router.get("/common/getDatableFixedFac",Common.getDatableFixedFac);
+router.get("/common/getUserDeptName",Common.getUserDeptName);
 
 
 module.exports = router;

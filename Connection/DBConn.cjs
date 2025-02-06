@@ -3,7 +3,8 @@ const oracledb = require("oracledb");
 require("dotenv").config();
 
 oracledb.initOracleClient({
-  tnsAdmin: process.env.TNS_ADMIN,
+  // tnsAdmin: process.env.TNS_ADMIN,
+  tnsAdmin: "D:\\app\\Chayanon.I\\product\\11.2.0\\client_1\\network\\admin\\",
 });
 
 const ConnectPG_DB = async () => {
@@ -25,13 +26,12 @@ const DisconnectPG_DB = async (client) => {
 };
 const ConnectOracle_DB = async (ConnType) => {
   if (ConnType == "SE") {
-    
+    console.log(process.env.TNS_ADMIN);
     const Oracle_SE_DB_CENTER = {
       user: process.env.FETL_SE_USER,
       password: process.env.FETL_SE_PASSWORD,
       connectString: process.env.FETL_SE_CONNECTSTRING,
     };
-    console.log(Oracle_SE_DB_CENTER)
     const connection = await oracledb.getConnection(Oracle_SE_DB_CENTER);
     return connection;
   }
@@ -39,4 +39,9 @@ const ConnectOracle_DB = async (ConnType) => {
 const DisconnectOracleDB = async (connection) => {
   await connection.close();
 };
-module.exports = { ConnectPG_DB, DisconnectPG_DB,ConnectOracle_DB,DisconnectOracleDB};
+module.exports = {
+  ConnectPG_DB,
+  DisconnectPG_DB,
+  ConnectOracle_DB,
+  DisconnectOracleDB,
+};

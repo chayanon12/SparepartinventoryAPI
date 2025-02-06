@@ -70,7 +70,7 @@ module.exports.GetDttable = async function (req, res) {
               spi.user_service,
               spi.quantity as onHands     
               from "SE".spi_product_item spi ,"SE".spi_product_store sps 
-              where spi.type_id =sps.type_id and sps.remark ='ACTIVE' 
+              where spi.type_id =sps.type_id and sps.remark ='ACTIVE' and item_type_flg = 'OLD'
   `;
     const result = await client.query(query);
     res.status(200).json(result.rows);
@@ -130,8 +130,9 @@ module.exports.GetCountDashboard = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
+    const {plantCode} = req.query;
     const json_data = {
-      strPlantCode: Fac,
+      strPlantCode: plantCode,
     };
     const json_convertdata = JSON.stringify(json_data);
     query += ` SELECT * FROM "SE".spi_Dashboard('${json_convertdata}'); `;
@@ -469,20 +470,11 @@ module.exports.getUserLogin = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { username, password } = req.body;
-    if (username == "adminstrator" && password == "fujikura") {;
-      res.status(200).json({
-        state: "Success",
-        value: {
-          password: "fujikura",
-          user_emp_id: "xxxxxxx",
-          user_fname: "Adminstrator",
-          user_surname: "SE",
-        },
-      });
-      return;
-    }
-    // query += ` select t.user_password as password ,t.user_emp_id,t.user_fname,t.user_surname  from "CUSR".cu_user_m t where t.user_login ='${username}'`;
-    query += ` select t.user_password as password ,t.user_emp_id,t.user_fname,t.user_surname from "CUSR".cu_user_m t where t.user_login ='${username}' and t.user_costcenter like '%180' and t.user_status ='A'`;
+    query += `select t.user_password as password, t.user_emp_id, t.user_fname, t.user_surname, t1.site_comment
+      from "CUSR".cu_user_m t
+      left join "CUSR".cu_site_m t1 on t.user_site = t1.site 
+      where t.user_login ='${username}' and t.user_costcenter like '%180' and t.user_status ='A'
+      `
     const result = await client.query(query);
     if (result.rows.length > 0) {
       if (result.rows[0].password == password) {
@@ -500,13 +492,37 @@ module.exports.getUserLogin = async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 };
+module.exports.getUserLoginWithSingleLogon = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { username, } = req.body;
+    query += `select t.user_password as password, t.user_emp_id, t.user_fname, t.user_surname, t1.site_comment
+      from "CUSR".cu_user_m t
+      left join "CUSR".cu_site_m t1 on t.user_site = t1.site 
+      where t.user_login ='${username}' and t.user_costcenter like '%180' and t.user_status ='A'
+      `
+    const result = await client.query(query);
+    if (result.rows.length > 0) {
+      res.status(200).json({ state: "Success", value: result.rows[0] });
+    } else {
+      res.status(400).json({ state: "Incorrect_Password" });
+    }
+
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports.getDataReport = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    const { movementtype, datefrom, dateto, typename, dept } = req.query;
+    const { movementtype, datefrom, dateto, typename, dept ,fac} = req.query;
     query += ` SELECT 
+        spa.plant_code,
         spa.item_broken_flg,
         sps.type_name,
         spa.serial_number,
@@ -547,6 +563,9 @@ module.exports.getDataReport = async function (req, res) {
     }
     if (dept !== "" && dept !== "undefined") {
       query += ` and spa.user_dept = '${dept}'  `;
+    }
+    if (fac !== "" && fac !== "undefined" && fac !== "All") {
+      query += ` and spa.plant_code = '${fac}'  `;
     }
     const result = await client.query(query);
     res.status(200).json(result.rows);
@@ -651,8 +670,11 @@ module.exports.getCostcenter = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
+    // select distinct cuh.cost_center from "CUSR".cu_user_humantrix cuh order by cuh.cost_center asc
     query = `
-             select distinct cuh.cost_center from "CUSR".cu_user_humantrix cuh order by cuh.cost_center asc
+             
+             select distinct t.cost_center from "CUSR".cu_user_humantrix t
+              where substr(t.cost_center,1,1) not in ('1','3','5','B','C','F','D','E','G','N','X') order by t.cost_center ;
             `;
     const result = await client.query(query);
     res.status(200).json(result.rows);
@@ -718,3 +740,60 @@ module.exports.setBrokenItem = async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 };
+
+module.exports.getDatableFixedFac = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { plantCode } = req.query;
+    query = `
+            SELECT 
+                spi.type_name,
+                spa.item_id, 
+                spa.plant_code, 
+                COUNT(*) AS total_in_stock
+            FROM "SE".spi_product_action spa
+            JOIN "SE".spi_product_item sps ON spa.item_id = sps.item_id
+            JOIN "SE".spi_product_store spi ON sps.type_id = spi.type_id
+            WHERE spa.movement_type = 'IN' 
+            AND spa.item_type_flg = 'OLD'
+            AND spa.plant_code = '${plantCode}'
+            GROUP BY spi.type_name, spa.item_id, spa.plant_code
+            ORDER BY spa.item_id;
+            `;
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+}
+
+
+module.exports.getUserDeptName = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { empcode } = req.query;
+    query = `
+           SELECT 
+    COALESCE(NULLIF(t.PROCESS, ''), 
+             NULLIF(t.v_section, ''), 
+             NULLIF(t.department, ''), 
+             NULLIF(t.DIVISION , ''), 
+             'No Value Found') AS DeptName
+              FROM "CUSR".cu_user_humantrix  t
+              where t.status  = 'Active'
+              and t.empcode = '${empcode}'
+            `;
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+}
+
+
