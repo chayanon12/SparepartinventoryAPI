@@ -8,6 +8,7 @@ const { writeLogError } = require("../Common/LogFuction.cjs");
 const Fac = process.env.FacA1;
 const fs = require("fs");
 const oracledb = require("oracledb");
+const nodemailer = require('nodemailer')
 const SE = {
   user: "se",
   password: "se",
@@ -434,7 +435,6 @@ module.exports.RequestTrasferfactory = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { strItemsid, strReqNo, strFromfac, strTofac, strAdminid } = req.body;
-    console.log(req.body);
     queryCheckExit = `select t.* from "SE".spi_product_transfer t where t.trf_req_no ='${strReqNo}' and t.trf_item_id='${strItemsid}' `;
     const resutlCheckingExit = await client.query(queryCheckExit);
     if (resutlCheckingExit.rows.length > 0) {
@@ -473,7 +473,6 @@ module.exports.RequestTrasferfactory = async function (req, res) {
     }
 
     const result = await client.query(query);
-    console.log(result);
     if (result.rowCount > 0) {
       res.status(200).json({ message: "Success" });
     } else {
@@ -530,7 +529,6 @@ module.exports.ReceivedTransferfactory = async function (req, res) {
             `;
 
     const result = await client.query(query);
-    console.log(result);
     if (result.rowCount > 0) {
       queryUpdateAction = `UPDATE "SE".spi_product_action 
                               SET
@@ -539,7 +537,6 @@ module.exports.ReceivedTransferfactory = async function (req, res) {
                                 req_no = '${strReqNo}'
                                 and serial_number ='${strstrSerialNo}'
                               `;
-      console.log(queryUpdateAction);
       const resultUpdateAction = await client.query(queryUpdateAction);
 
       if (resultUpdateAction.rowCount > 0) {
@@ -591,3 +588,109 @@ module.exports.ShowTransfer = async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 };
+const smtpConfig = {
+  host: '10.17.220.200',
+  port: 25, 
+  secure: false, 
+  auth: {
+    user: 'SEInventorySystem@th.fujikura.com', 
+    pass: ''
+  }
+};
+const transporter = nodemailer.createTransport(smtpConfig);
+module.exports.EmailSend = async function (req,res){
+  let query ;
+  const { strPlantCodeFrom,strPlantCodeDestination,strSubject,strDate,strTotalquantity} = req.body;
+  try {   
+    const client = await ConnectPG_DB();
+    // query = `SELECT 
+    //       t.user_email AS user_email
+    //         FROM "CUSR".cu_user_m t
+    //         JOIN "CUSR".cu_user_humantrix t2 ON t.user_emp_id = t2.empcode  
+    //         WHERE 
+    //             t.user_costcenter LIKE '%180'
+    //             AND t.user_position <> ''
+    //             and t2.status ='Active'
+    //             AND t2.work_location = '${strPlantCodeDestination}'
+    //             AND t2.pos_grade NOT IN ('TL1', 'TL2', 'TSL','TSX');
+    // '
+    let strEmailFormat = `
+    <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Notification</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f8f9fa;">
+            <br><br>
+            <br><br>
+            <table align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                <tr>
+                    <td align="center" style="padding: 20px 0; background-color: #b8e0d2; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                        <h2 style="color: #2a6f65; margin: 0;">📦 Delivery Notification </h2>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px;">
+                        <p style="font-size: 16px; color: #333;">
+                            Dear, SE ${strPlantCodeDestination} Team  
+                            <br><br>
+                            มีการส่งของจาก <strong>Factory ${strPlantCodeFrom}</strong> เข้ามาในระบบของคุณ โปรดตรวจสอบรายละเอียดของรายการเพื่อเตรียมรับอุปกรณ์ให้เรียบร้อย
+                        </p>
+                        <div style="background-color: #e3f2fd; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                            <p style="margin: 0; color: #1a237e;">📝 รายละเอียด:</p>
+                            <ul style="margin: 10px 0 0; padding-left: 20px; color: #1a237e;">
+                                <li><strong>โรงงานต้นทาง:</strong> Factory ${strPlantCodeFrom}</li>
+                                <li><strong>วันที่ส่ง:</strong> ${strDate} </li>
+                                <li><strong>จำนวนอุปกรณ์:</strong> ${strTotalquantity} ชิ้น</li>
+                            </ul>
+                        </div>
+                        <p style="font-size: 14px; color: #555; margin-top: 15px;">
+                            กรุณาตรวจสอบข้อมูลผ่านระบบของคุณ และดำเนินการต่อให้เรียบร้อย
+                        </p>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <a href="http://10.17.100.183:4003/InventorymanagementSystem" style="text-decoration: none; background-color: #2a6f65; color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 16px;">ตรวจสอบรายการ</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="padding: 15px; font-size: 12px; color: #777;">
+                        <p style="margin: 0;">© 2025 fujikura electronics (thailand) ltd. All rights reserved.</p>
+                    </td>
+                </tr>
+            </table>
+            <br><br>
+            <br><br>
+            <br><br>
+            <br><br>
+
+        </body>
+        </html>
+        `
+    let query2 = `SELECT unnest(string_to_array('Chayanon.i@th.fujikura.com', ',')) AS user_email;` 
+    const result =  await client.query(query2);
+    if(result.rows.length > 0){
+      const emailList = result.rows.map(row => row.user_email);
+      const mailOptions = {
+        from: "SEInventorySystem@th.fujikura.com",
+        to: emailList,
+        subject: strSubject,
+        html: strEmailFormat
+      };
+      if(await transporter.sendMail(mailOptions)){
+        console.log({message:'Success',email:emailList})
+        res.status(200).json({message:'Success',email:emailList});
+      }else{
+        res.status(204).json({message:'Can not send email'});
+      }
+    }else{
+      res.status(204).json({message:'Not found'});
+    }
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+}
+

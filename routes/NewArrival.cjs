@@ -21,6 +21,8 @@ router.post('/setTrasferfactory',NewArr.RequestTrasferfactory);
 router.post('/setCancelTransferfactory',NewArr.CancelTransferfactory);
 router.post('/setReceivedTransferfactory',NewArr.ReceivedTransferfactory);
 router.get('/getShowTransfer',NewArr.ShowTransfer);
+router.post('/EmailSend',NewArr.EmailSend);
+
 
 
 module.exports = router;
