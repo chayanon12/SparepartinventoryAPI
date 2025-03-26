@@ -473,8 +473,9 @@ module.exports.getUserLogin = async function (req, res) {
     query += `select t.user_password as password, t.user_emp_id, t.user_fname, t.user_surname, t1.site_comment
       from "CUSR".cu_user_m t
       left join "CUSR".cu_site_m t1 on t.user_site = t1.site 
-      where t.user_login ='${username}' and t.user_costcenter like '%180' and t.user_status ='A'
+      where upper(t.user_login) = upper('${username}') and t.user_costcenter like '%180' and t.user_status ='A'
       `
+    console.log(query)
     const result = await client.query(query);
     if (result.rows.length > 0) {
       if (result.rows[0].password == password) {

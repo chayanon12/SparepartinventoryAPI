@@ -14,7 +14,13 @@ router.get('/getSerialRequestNumberPostgres',NewArr.getSerialRequestNumberPostgr
 router.post('/setReqNoStatusData',NewArr.setReqNoStatusData);
 router.get('/getProductItemsNewArr',NewArr.getProductItemsNewArr);
 router.get('/getDatableFixedFac',NewArr.getDatableFixedFac);
-
+router.get('/getNotificationTransection',NewArr.getNotificationTransection);
+router.get('/getDatatoTranferbyReqNo',NewArr.getDatatoTranferbyReqNo);
+router.get('/getDatatoTranferbySerial',NewArr.getDatatoTranferbySerial);
+router.post('/setTrasferfactory',NewArr.RequestTrasferfactory);
+router.post('/setCancelTransferfactory',NewArr.CancelTransferfactory);
+router.post('/setReceivedTransferfactory',NewArr.ReceivedTransferfactory);
+router.get('/getShowTransfer',NewArr.ShowTransfer);
 
 
 module.exports = router;
