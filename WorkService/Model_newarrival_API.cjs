@@ -151,7 +151,8 @@ module.exports.getDataReportNewArr = async function (req, res) {
         spa.pc_monitor_serial as  desktopmonitor,
         spa.pc_old_serial as olddesktopserial,
         spa.user_contact as usercontact,
-        spa.remark as remark
+        spa.remark as remark,
+        spa.req_no as req_no 
     FROM 
         "SE".spi_product_action spa,"SE".spi_product_store sps 
     where
@@ -264,7 +265,7 @@ module.exports.getSerialRequestNumberPostgres = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const Conn = await oracledb.getConnection(SE);
-    queryOracle = `SELECT C.SES_MSTR_DESC,T.SP_REQ_AMOUNT
+    queryOracle = `SELECT C.SES_MSTR_DESC,T.SP_REQ_AMOUNT,T.SP_REQ_BY 
               FROM SES_PROCESS T INNER JOIN SES_MASTER_CODE C ON C.SES_MSTRG_ID='3400' AND C.SES_MSTR_CODE=T.SP_REQ_ITEM_TYPE
               WHERE T.SP_REQ_NO = '${strRequestNumber}'`;
     query = `select t.serial_number  from "SE".spi_product_action t where t.req_no ='${strRequestNumber}' order by movement_id `;
@@ -273,10 +274,12 @@ module.exports.getSerialRequestNumberPostgres = async function (req, res) {
     if (resultOracle.rows.length === 0) {
       res.status(204).json({ message: "No data found" });
     } else {
+      console.log(resultOracle);
       res.status(200).json({
         item_type: resultOracle.rows[0][0],
         amount: resultOracle.rows[0][1],
         serial_number: result.rows[0] && result.rows ? result.rows : "",
+        req_by: resultOracle.rows[0][2],
       });
     }
     // res.status(200).json(result.rows);
@@ -296,19 +299,66 @@ module.exports.getdataRequestNumber = async function (req, res) {
   let query = "";
   var Conn;
   const { strRequestNumber } = req.query;
+  console.log(strRequestNumber);
   try {
     // Conn = await ConnectOracle_DB("SE");
     const Conn = await oracledb.getConnection(CUSR);
-    query = ` SELECT C.SES_MSTR_DESC,T.SP_REQ_AMOUNT
+    query = ` SELECT C.SES_MSTR_DESC,T.SP_REQ_AMOUNT,T.SP_REQ_BY 
               FROM SE.SES_PROCESS T INNER JOIN SE.SES_MASTER_CODE C ON C.SES_MSTRG_ID='3400' AND C.SES_MSTR_CODE=T.SP_REQ_ITEM_TYPE
               WHERE T.SP_REQ_NO = '${strRequestNumber}'`;
     const result = await Conn.execute(query);
     if (result.rows.length === 0) {
       res.status(204).json({ message: "No data found" });
     } else {
+
       res
         .status(200)
-        .json({ item_type: result.rows[0][0], amount: result.rows[0][1] });
+        .json({ item_type: result.rows[0][0], amount: result.rows[0][1], req_by: result.rows[0][2] });
+    }
+    DisconnectOracleDB(Conn);
+  } catch (err) {
+    writeLogError(err.message, query);
+    res.status(500).json({ message: err.message });
+    DisconnectOracleDB(Conn);
+  }
+};
+module.exports.getdataFromReqno = async function (req, res) {
+  let query = "";
+  var Conn;
+  const { strRequestNumber } = req.query;
+  console.log(strRequestNumber);
+  try {
+    // Conn = await ConnectOracle_DB("SE");
+    const Conn = await oracledb.getConnection(CUSR);
+    query = ` SELECT 
+                S.SP_REQ_NO AS req_no,
+                  T.EMPCODE AS id_code,
+                  SUBSTR(T.ETITLE,0,1) || LOWER(SUBSTR(T.ETITLE,2)) || SUBSTR(T.ENAME,0,1) || LOWER(SUBSTR(T.ENAME,2))  AS name,
+                  SUBSTR(T.ESURNAME,0,1) || LOWER(SUBSTR(T.ESURNAME,2))  AS surname,
+                  S.SP_REQ_DEPT AS user_dept,
+                  T.DIVISION as user_divition,
+                  S.SP_REQ_AMOUNT AS SP_REQ_AMOUNT
+              FROM 
+                  SE.SES_PROCESS S
+              INNER JOIN 
+                  CUSR.CU_USER_HUMANTRIX T ON S.SP_REQ_BY = T.EMPCODE
+              WHERE 
+                  S.SP_REQ_NO =  '${strRequestNumber}'`;
+    const result = await Conn.execute(query);
+    if (result.rows.length === 0) {
+      res.status(204).json({ message: "No data found" });
+    } else {
+      res
+        .status(200)
+        .json({
+          req_no: result.rows[0][0], 
+          id_code: result.rows[0][1], 
+          user_name: result.rows[0][2] , 
+          user_surname: result.rows[0][3], 
+          user_req_dept: result.rows[0][4], 
+          user_divition: result.rows[0][5],
+          amount: result.rows[0][6]
+        });
     }
     DisconnectOracleDB(Conn);
   } catch (err) {
@@ -679,7 +729,6 @@ module.exports.EmailSend = async function (req,res){
         html: strEmailFormat
       };
       if(await transporter.sendMail(mailOptions)){
-        console.log({message:'Success',email:emailList})
         res.status(200).json({message:'Success',email:emailList});
       }else{
         res.status(204).json({message:'Can not send email'});

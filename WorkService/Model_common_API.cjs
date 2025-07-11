@@ -44,7 +44,7 @@ module.exports.GetData = async function (req, res) {
         });
       }
       res.status(200).json(data);
-    }else{
+    } else {
       res.status(200).json(result.rows);
     }
     DisconnectPG_DB(client);
@@ -86,7 +86,7 @@ module.exports.GetDttableAll = async function (req, res) {
     const client = await ConnectPG_DB();
     let strType = req.query.strType;
     const json_data = {
-      strType : strType,
+      strType: strType,
       strPlantCode: Fac,
     };
     const json_convertdata = JSON.stringify(json_data);
@@ -104,7 +104,7 @@ module.exports.GetDttableFixSerial = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    let { plantCode,serial } = req.query;
+    let { plantCode, serial } = req.query;
     query += ` select 
               spa.product_status as product_status,
               spa.item_broken_flg ,
@@ -130,7 +130,7 @@ module.exports.GetCountDashboard = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    const {plantCode} = req.query;
+    const { plantCode } = req.query;
     const json_data = {
       strPlantCode: plantCode,
     };
@@ -146,13 +146,14 @@ module.exports.GetCountDashboard = async function (req, res) {
 };
 module.exports.insertData = async function (req, res) {
   var query = "";
-  try { 
+  try {
     const client = await ConnectPG_DB();
     let { dataList } = req.body;
     const json_convertdata = JSON.stringify(dataList);
     query += ` CALL "SE".SPI_INSERT_DATA('[${json_convertdata}]','') `;
 
     const result = await client.query(query);
+    console.log(result.rows);
     if (result.rows[0].p_error == "") {
       res.status(200).json({ result: "Success" });
       return;
@@ -167,6 +168,8 @@ module.exports.insertData = async function (req, res) {
         res.status(204).json({ result: "Already Out" });
       } else if (result.rows[0].p_error == "Item_wrong") {
         res.status(205).json({ result: "Item_wrong" });
+      } else if (result.rows[0].p_error == "Item_Holding") {
+        res.status(206).json({ result: "Item_Holding" });
       } else {
         res.status(400).json({ result: result.rows[0].p_error });
       }
@@ -204,7 +207,7 @@ module.exports.genSerial = async function (req, res) {
       strItemId: strItemID,
     };
     const json_convertdata = JSON.stringify(json_data);
-    
+
     query += ` SELECT * FROM "SE".spi_getdata('${json_convertdata}'); `;
     const result = await client.query(query);
     let existingSerialNumbers = result.rows[0].serialnumber;
@@ -214,7 +217,7 @@ module.exports.genSerial = async function (req, res) {
       if (existingSerialNumbers === "") {
         let serialNumberInt = parseInt(
           baseSerialNumber.slice(strItem.length),
-          10 
+          10
         );
 
         while (serialNumbers.length < count) {
@@ -474,8 +477,7 @@ module.exports.getUserLogin = async function (req, res) {
       from "CUSR".cu_user_m t
       left join "CUSR".cu_site_m t1 on t.user_site = t1.site 
       where upper(t.user_login) = upper('${username}') and t.user_costcenter like '%180' and t.user_status ='A'
-      `
-    console.log(query)
+      `;
     const result = await client.query(query);
     if (result.rows.length > 0) {
       if (result.rows[0].password == password) {
@@ -497,12 +499,12 @@ module.exports.getUserLoginWithSingleLogon = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    const { username, } = req.body;
+    const { username } = req.body;
     query += `select t.user_password as password, t.user_emp_id, t.user_fname, t.user_surname, t1.site_comment
       from "CUSR".cu_user_m t
       left join "CUSR".cu_site_m t1 on t.user_site = t1.site 
       where t.user_login ='${username}' and t.user_costcenter like '%180' and t.user_status ='A'
-      `
+      `;
     const result = await client.query(query);
     if (result.rows.length > 0) {
       res.status(200).json({ state: "Success", value: result.rows[0] });
@@ -521,7 +523,7 @@ module.exports.getDataReport = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    const { movementtype, datefrom, dateto, typename, dept ,fac} = req.query;
+    const { movementtype, datefrom, dateto, typename, dept, fac } = req.query;
     query += ` SELECT 
         spa.plant_code,
         spa.item_broken_flg,
@@ -640,7 +642,7 @@ module.exports.getType = async function (req, res) {
 module.exports.InsertNewtype = async function (req, res) {
   var query = "";
   try {
-    const { type_name, type_product, type_abbr} = req.body;
+    const { type_name, type_product, type_abbr } = req.body;
     const client = await ConnectPG_DB();
     query = `
             INSERT INTO "SE".spi_product_store
@@ -769,8 +771,7 @@ module.exports.getDatableFixedFac = async function (req, res) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
   }
-}
-
+};
 
 module.exports.getUserDeptName = async function (req, res) {
   var query = "";
@@ -795,6 +796,4 @@ module.exports.getUserDeptName = async function (req, res) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
   }
-}
-
-
+};

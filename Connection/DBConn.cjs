@@ -24,12 +24,6 @@ const DisconnectPG_DB = async (client) => {
 };
 const ConnectOracle_DB = async (ConnType) => {
   if (ConnType == "SE") {
-    console.log(process.env.TNS_ADMIN);
-    const Oracle_SE_DB_CENTER = {
-      user: process.env.FETL_SE_USER,
-      password: process.env.FETL_SE_PASSWORD,
-      connectString: process.env.FETL_SE_CONNECTSTRING,
-    };
     const connection = await oracledb.getConnection(Oracle_SE_DB_CENTER);
     return connection;
   }
