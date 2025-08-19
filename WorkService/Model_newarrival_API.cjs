@@ -8,7 +8,7 @@ const { writeLogError } = require("../Common/LogFuction.cjs");
 const Fac = process.env.FacA1;
 const fs = require("fs");
 const oracledb = require("oracledb");
-const nodemailer = require('nodemailer')
+const nodemailer = require("nodemailer");
 const SE = {
   user: "se",
   password: "se",
@@ -209,6 +209,7 @@ module.exports.setReqNoStatusData = async function (req, res) {
     const client = await ConnectPG_DB();
     const json_convertdata = JSON.stringify(dataList);
     query += ` CALL "SE".spi_insert_req_data('[${json_convertdata}]','') `;
+    
     const result = await client.query(query);
     if (result.rows[0].p_error == "") {
       res.status(200).json({ result: "Success" });
@@ -310,10 +311,13 @@ module.exports.getdataRequestNumber = async function (req, res) {
     if (result.rows.length === 0) {
       res.status(204).json({ message: "No data found" });
     } else {
-
       res
         .status(200)
-        .json({ item_type: result.rows[0][0], amount: result.rows[0][1], req_by: result.rows[0][2] });
+        .json({
+          item_type: result.rows[0][0],
+          amount: result.rows[0][1],
+          req_by: result.rows[0][2],
+        });
     }
     DisconnectOracleDB(Conn);
   } catch (err) {
@@ -348,17 +352,15 @@ module.exports.getdataFromReqno = async function (req, res) {
     if (result.rows.length === 0) {
       res.status(204).json({ message: "No data found" });
     } else {
-      res
-        .status(200)
-        .json({
-          req_no: result.rows[0][0], 
-          id_code: result.rows[0][1], 
-          user_name: result.rows[0][2] , 
-          user_surname: result.rows[0][3], 
-          user_req_dept: result.rows[0][4], 
-          user_divition: result.rows[0][5],
-          amount: result.rows[0][6]
-        });
+      res.status(200).json({
+        req_no: result.rows[0][0],
+        id_code: result.rows[0][1],
+        user_name: result.rows[0][2],
+        user_surname: result.rows[0][3],
+        user_req_dept: result.rows[0][4],
+        user_divition: result.rows[0][5],
+        amount: result.rows[0][6],
+      });
     }
     DisconnectOracleDB(Conn);
   } catch (err) {
@@ -423,19 +425,32 @@ module.exports.getDatatoTranferbyReqNo = async function (req, res) {
     if (resultCheckDuplicate.rows.length > 0) {
       res.status(200).json({ message: "Duplicate Request Number" });
     } else {
-      query = `
-      SELECT 
-          spa.plant_code as factory,
-          spa.req_no as req_no ,
-          spa.serial_number as serial_number,
-          spa.product_status as product_status,
-          spa.admin_id as admin_scanin,
-          to_char(spa.create_date,'dd/mm/yyyy') as scan_in_date
-            from "SE".spi_product_action spa
-              where req_no ='${strReqNo}' 
-                and product_status ='INSTOCK'
-                and plant_code = '${strFac}'
-      `;
+
+       query = `SELECT 
+          spa.plant_code AS factory,
+          spa.req_no AS req_no,
+          spa.serial_number AS serial_number,
+          spa.product_status AS product_status,
+          spa.admin_id AS admin_scanin,
+          TO_CHAR(spa.create_date, 'dd/mm/yyyy') AS scan_in_date
+      FROM 
+          "SE".spi_product_action spa
+      WHERE 
+          spa.product_status = 'INSTOCK'
+          AND spa.req_no <> ''`
+      if (strReqNo !== "" && strReqNo !== undefined) {query += ` and spa.req_no ='${strReqNo}' `}     
+      query += `
+          AND spa.plant_code = '${strFac}' 
+          AND NOT EXISTS (
+              SELECT 1 
+              FROM "SE".spi_product_transfer spt
+              WHERE spt.trf_req_no = spa.req_no
+                AND spt.trf_status = 'PENDING'
+          )
+      ORDER BY 
+          spa.create_date DESC;
+          `
+    
       const result = await client.query(query);
       res.status(200).json(result.rows);
     }
@@ -464,7 +479,7 @@ module.exports.getDatatoTranferbySerial = async function (req, res) {
           spa.serial_number as serial_number,
           spa.product_status as product_status,
           spa.admin_id as admin_scanin,
-          to_char(spa.create_date,'dd/mm/yyyy') as scan_in_date
+          to_char(spa.create_date,'dd/mm/yyyy') as scan_in_date,
             from "SE".spi_product_action spa
               where serial_number ='${strSerialNumber}' 
                 and product_status ='INSTOCK'
@@ -486,6 +501,7 @@ module.exports.RequestTrasferfactory = async function (req, res) {
     const client = await ConnectPG_DB();
     const { strItemsid, strReqNo, strFromfac, strTofac, strAdminid } = req.body;
     queryCheckExit = `select t.* from "SE".spi_product_transfer t where t.trf_req_no ='${strReqNo}' and t.trf_item_id='${strItemsid}' `;
+    console.log(queryCheckExit);
     const resutlCheckingExit = await client.query(queryCheckExit);
     if (resutlCheckingExit.rows.length > 0) {
       query = ` UPDATE "SE".spi_product_transfer SET 
@@ -638,26 +654,54 @@ module.exports.ShowTransfer = async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 };
-const smtpConfig = {
-  host: '10.17.220.200',
-  port: 25, 
-  secure: false, 
-  auth: {
-    user: 'SEInventorySystem@th.fujikura.com', 
-    pass: ''
+module.exports.getScanoutItemtype = async function (req, res) {
+  let query;
+  try {
+    const client = await ConnectPG_DB();
+    const { strSerialNumber } = req.query;   
+    query = `
+      select 
+      t1.type_id as typeid
+      ,t1.type_name as typename 
+        from "SE".spi_product_action t 
+        inner join "SE".spi_product_store t1 on t1.type_id =t.item_id 
+        where serial_number ='${strSerialNumber}'
+    `;  
+
+    const result = await client.query(query);
+    res.status(200).json(result.rows);
+    DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
   }
 };
+const smtpConfig = {
+  host: "10.17.220.200",
+  port: 25,
+  secure: false,
+  auth: {
+    user: "SEInventorySystem@th.fujikura.com",
+    pass: "",
+  },
+};
 const transporter = nodemailer.createTransport(smtpConfig);
-module.exports.EmailSend = async function (req,res){
-  let query ;
-  const { strPlantCodeFrom,strPlantCodeDestination,strSubject,strDate,strTotalquantity} = req.body;
-  try {   
+module.exports.EmailSend = async function (req, res) {
+  let query;
+  const {
+    strPlantCodeFrom,
+    strPlantCodeDestination,
+    strSubject,
+    strDate,
+    strTotalquantity,
+  } = req.body;
+  try {
     const client = await ConnectPG_DB();
-    // query = `SELECT 
+    // query = `SELECT
     //       t.user_email AS user_email
     //         FROM "CUSR".cu_user_m t
-    //         JOIN "CUSR".cu_user_humantrix t2 ON t.user_emp_id = t2.empcode  
-    //         WHERE 
+    //         JOIN "CUSR".cu_user_humantrix t2 ON t.user_emp_id = t2.empcode
+    //         WHERE
     //             t.user_costcenter LIKE '%180'
     //             AND t.user_position <> ''
     //             and t2.status ='Active'
@@ -717,29 +761,28 @@ module.exports.EmailSend = async function (req,res){
 
         </body>
         </html>
-        `
-    let query2 = `SELECT unnest(string_to_array('Chayanon.i@th.fujikura.com', ',')) AS user_email;` 
-    const result =  await client.query(query2);
-    if(result.rows.length > 0){
-      const emailList = result.rows.map(row => row.user_email);
+        `;
+    let query2 = `SELECT unnest(string_to_array('Chayanon.i@th.fujikura.com', ',')) AS user_email;`;
+    const result = await client.query(query2);
+    if (result.rows.length > 0) {
+      const emailList = result.rows.map((row) => row.user_email);
       const mailOptions = {
         from: "SEInventorySystem@th.fujikura.com",
         to: emailList,
         subject: strSubject,
-        html: strEmailFormat
+        html: strEmailFormat,
       };
-      if(await transporter.sendMail(mailOptions)){
-        res.status(200).json({message:'Success',email:emailList});
-      }else{
-        res.status(204).json({message:'Can not send email'});
+      if (await transporter.sendMail(mailOptions)) {
+        res.status(200).json({ message: "Success", email: emailList });
+      } else {
+        res.status(204).json({ message: "Can not send email" });
       }
-    }else{
-      res.status(204).json({message:'Not found'});
+    } else {
+      res.status(204).json({ message: "Not found" });
     }
     DisconnectPG_DB(client);
   } catch (error) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
   }
-}
-
+};

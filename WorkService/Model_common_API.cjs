@@ -151,7 +151,7 @@ module.exports.insertData = async function (req, res) {
     let { dataList } = req.body;
     const json_convertdata = JSON.stringify(dataList);
     query += ` CALL "SE".SPI_INSERT_DATA('[${json_convertdata}]','') `;
-
+    console.log(query);
     const result = await client.query(query);
     console.log(result.rows);
     if (result.rows[0].p_error == "") {
